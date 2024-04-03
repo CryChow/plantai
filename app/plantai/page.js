@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import {Upload, message, Button, Image, Typography, Layout, Flex, Empty, Card, Statistic} from 'antd';
+import {Upload, message, Button, Image, Typography, Layout, Flex, Empty, Card, Statistic, Spin} from 'antd';
 import CountUp from 'react-countup';
 import { UploadOutlined } from '@ant-design/icons';
 import Meta from "antd/es/card/Meta";
@@ -12,6 +12,7 @@ const PlantRecognition = () => {
     const [result, setResult] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [plantInfo, setPlantInfo] = useState(null);
+    const [loading, setLoading] = useState(false);
     const handleUpload = async ({ file }) => {
         const base64 = await convertToBase64(file);
         setImagePreview(URL.createObjectURL(file));
@@ -29,6 +30,7 @@ const PlantRecognition = () => {
 
     const callApi = (base64) => {
         console.log(base64);
+        setLoading(true);
         fetch('/api', {
             method: 'POST',
             headers: {
@@ -38,6 +40,7 @@ const PlantRecognition = () => {
         })
             .then(response => response.json())
             .then(data => {
+                setLoading(false);
                 setResult(data?.result || []);
                 console.log('111111', data)
                 setPlantInfo({
@@ -46,6 +49,7 @@ const PlantRecognition = () => {
                 });
             })
             .catch(error => {
+                setLoading(false);
                 console.error('Error:', error);
             });
     };
@@ -92,7 +96,7 @@ const PlantRecognition = () => {
     return (
         <Flex gap="middle" wrap="wrap">
             <Layout>
-                <Header style={headerStyle}>AI盆栽名片制作室</Header>
+                <Header style={headerStyle}>北塘小学植物识别系统</Header>
                 <Content style={contentStyle}>
                     <div>
                         <Upload
@@ -100,42 +104,46 @@ const PlantRecognition = () => {
                             showUploadList={false}
                             accept="image/*"
                         >
-                            <Button icon={<UploadOutlined/>}>点击上传图片</Button>
+                            <Button icon={<UploadOutlined/>}>给我一张你不认识的植物图片吧</Button>
                         </Upload>
                         {imagePreview && (
                             <div>
                                 <Image src={imagePreview} width={200}/>
                             </div>
                         )}
-                        {result?.length > 0 ? (
-                            <Flex horizontal gap="middle" justify="center">
-                                {result.map((i, index) => (
-                                    <Card
-                                        key={i + index}
-                                        hoverable
-                                        style={{ width: 240 }}
-                                        // cover={<img alt="北塘小学" src={i.baike_info.image_url + '?x-bce-process=image/resize,m_lfit,w_536,limit_1/quality,Q_70'} />}
-                                    >
-                                        <Meta title={i.name} description={(
-                                            <>
-                                                <Statistic
-                                                    // title={i.baike_info.description}
-                                                    value={i.score * 100}
-                                                    precision={2}
-                                                    valueStyle={{ color: '#3f8600' }}
-                                                    suffix="%"
-                                                    formatter={formatter}
-                                                />
-                                                <Paragraph>
-                                                    {i.baike_info.description}
-                                                </Paragraph>
-                                            </>
-                                        )} />
+                        <Spin tip="识别中，请稍后" size="small" spinning={loading}>
+                            {result?.length > 0 ? (
+                                <Flex horizontal gap="middle" justify="center">
+                                    {result.map((i, index) => (
+                                        <Card
+                                            key={i + index}
+                                            hoverable
+                                            style={{ width: 240 }}
+                                            onClick={() => window.open(i.baike_info.baike_url)}
+                                            // cover={<img alt="北塘小学" src={i.baike_info.image_url + '?x-bce-process=image/resize,m_lfit,w_536,limit_1/quality,Q_70'} />}
+                                        >
+                                            <Meta title={i.name} description={(
+                                                <>
+                                                    <Statistic
+                                                        // title={i.baike_info.description}
+                                                        value={i.score * 100}
+                                                        precision={2}
+                                                        valueStyle={{ color: '#3f8600' }}
+                                                        suffix="%"
+                                                        formatter={formatter}
+                                                    />
+                                                    <Paragraph>
+                                                        {i.baike_info.description}
+                                                    </Paragraph>
+                                                </>
+                                            )} />
 
-                                    </Card>
-                                ))}
-                            </Flex>
-                        ) : <Empty description="暂无数据" />}
+                                        </Card>
+                                    ))}
+                                </Flex>
+                            ) : (!loading ?? <Empty description="暂无数据" />)}
+                        </Spin>
+
                         {/*{plantInfo && (*/}
                         {/*    <div>*/}
                         {/*        <Title level={3}>{plantInfo.name}</Title>*/}
