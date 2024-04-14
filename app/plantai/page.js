@@ -81,7 +81,7 @@ const PlantRecognition = () => {
 
     const contentStyle = {
         textAlign: 'center',
-        minHeight: 120,
+        minHeight: '100vh',
         lineHeight: '120px',
         // color: '#fff',
         backgroundColor: '#fff',
@@ -104,7 +104,7 @@ const PlantRecognition = () => {
                             showUploadList={false}
                             accept="image/*"
                         >
-                            <Button icon={<UploadOutlined/>}>给我一张你不认识的植物图片吧</Button>
+                            <Button icon={<UploadOutlined/>}>点击上传植物图片</Button>
                         </Upload>
                         {imagePreview && (
                             <div>
